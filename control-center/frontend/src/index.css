@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* Hermes Control Center theme — dark-first, high contrast, iPhone friendly.
+   Tap targets are >= 44px, body text is >= 15px, and nothing relies on hover. */
+@theme {
+  --color-bg: #080b11;
+  --color-surface: #0f141c;
+  --color-surface-2: #161d28;
+  --color-border: #24303f;
+  --color-text: #e8eef6;
+  --color-muted: #94a6bb;
+  --color-accent: #ffd166;
+  --color-accent-2: #7cc4ff;
+  --color-ok: #4ade80;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Safe areas: the notch and home indicator on iPhones. */
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.tap {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+pre,
+code,
+.mono {
+  font-family: var(--font-mono);
+}
+
+pre {
+  overflow-x: auto;
+  background: #0a0e14;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.markdown p {
+  margin: 0 0 0.6rem;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0 0 0.6rem 1.1rem;
+}
+.markdown a {
+  color: var(--color-accent-2);
+}
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  font-size: 1rem;
+  margin: 0.8rem 0 0.4rem;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse { animation: none; }
+}

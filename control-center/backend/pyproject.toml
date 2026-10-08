@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-control-center"
+version = "1.0.0"
+description = "Mobile-first web control plane for the Hermes Agent runtime (Nous Research)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Hermes Agent Control Center contributors" }]
+keywords = ["hermes", "agent", "control-center", "self-hosted", "mobile-first"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Systems Administration",
+]
+
+# Kept deliberately small: this is the *control plane*, not the agent.
+dependencies = [
+  "fastapi>=0.111",
+  "uvicorn[standard]>=0.30",
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+# Encrypting provider keys at rest. Without it the store refuses to keep secrets.
+crypto = ["cryptography>=42"]
+# PostgreSQL support for the Control Center's own database.
+postgres = ["psycopg[binary]>=3.2"]
+# Host metrics for the deployment verdict.
+metrics = ["psutil>=5.9"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "anyio>=4"]
+all = ["cryptography>=42", "psycopg[binary]>=3.2", "psutil>=5.9"]
+
+[project.scripts]
+hermes-control-center = "app.__main__:main"
+
+[tool.setuptools]
+packages = ["app", "app.routes", "app.hermes"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]

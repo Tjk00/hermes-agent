@@ -1,0 +1,68 @@
+# Ignore rules for the Control Center integration layer.
+#
+# This file lives inside control-center/ on purpose: the upstream Hermes Agent
+# .gitignore at the repository root is Nous Research's file and stays untouched, so
+# upstream updates never conflict with our housekeeping.
+#
+# What must never be committed:
+#   * state (databases, logs, backups, the agent's runtime home)
+#   * secrets (the vault master key, exported keys, .env)
+#   * build output (the UI is built by Docker or npm, not committed)
+
+# --- secrets and state -------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.key
+secret.key
+secrets.key
+session.secret
+*.pem
+*.pfx
+credentials.json
+service-account*.json
+
+# --- local state written at runtime -----------------------------------------
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+data/
+runtime/
+logs/
+backups/
+reports/
+*.log
+
+# --- python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+
+# --- node / frontend ---------------------------------------------------------
+node_modules/
+.npm/
+frontend/build/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# --- editors and OS ----------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- local deployment leftovers ---------------------------------------------
+docker-compose.override.yml
+.env.local

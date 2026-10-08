@@ -1,0 +1,95 @@
+# Hermes Agent Control Center — zero-cost default deployment.
+#
+#   cp .env.example .env      # then edit the two values that matter
+#   docker compose -f docker/docker-compose.yml up -d --build
+#
+# What runs:
+#   control-center  the web UI + API, and the Hermes runtime it supervises
+#   postgres        OPTIONAL. Only started with `--profile postgres`, because the
+#                   default SQLite store costs nothing and needs no container.
+#
+# Anything you would pay for is off by default and labelled as such. There is no
+# paid provider here: adding a key is what activates one, and only you can do that.
+
+name: hermes-control-center
+
+services:
+  control-center:
+    build:
+      # The context is the control-center/ directory (compose resolves it relative
+      # to *this file*): only our own sources are needed, because Hermes is cloned
+      # inside the image. Being the context root is also what makes docker read
+      # control-center/.dockerignore instead of the upstream project's.
+      #   docker build -f docker/Dockerfile ..   (from inside docker/)
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        # Advance Hermes deliberately, not accidentally.
+        HERMES_REF: ${HERMES_REF:-main}
+    image: hermes-control-center:local
+    restart: unless-stopped
+    ports:
+      # Bind to loopback by default: put a reverse proxy or tunnel in front for
+      # remote access. Change to "${CC_BIND:-0.0.0.0}:8080:8080" if you accept
+      # exposing it directly — the session cookie is only Secure behind HTTPS.
+      - "${CC_BIND:-127.0.0.1}:8080:8080"
+    environment:
+      CC_HOME: /data/cc
+      CC_HERMES_HOME: /data/hermes
+      CC_HOST: 0.0.0.0
+      CC_PORT: "8080"
+      CC_RUNTIME_MODE: dashboard
+      CC_RUNTIME_AUTOSTART: "1"
+      CC_ADOPT_EXISTING: "1"
+      CC_HERMES_SOURCE: /opt/hermes-agent
+      CC_HERMES_PORT: "9119"
+      CC_CHAT_BRIDGE_PORT: "9120"
+      CC_LOG_LEVEL: ${CC_LOG_LEVEL:-INFO}
+      # Set these once to create the first administrator on first boot; then they
+      # are ignored (the account already exists). Use a long, unique password.
+      CC_ADMIN_USER: ${CC_ADMIN_USER:-}
+      CC_ADMIN_PASSWORD: ${CC_ADMIN_PASSWORD:-}
+      # Point at the postgres service only when the optional profile is running.
+      CC_DATABASE_URL: ${CC_DATABASE_URL:-}
+      TZ: ${TZ:-UTC}
+    volumes:
+      # One volume holds the database, the encrypted vault, logs, backups and the
+      # whole Hermes home. This is what you copy to migrate to another host.
+      - hermes-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    # The agent can be memory-hungry with tools; these are the honest floors.
+    deploy:
+      resources:
+        limits:
+          memory: ${CC_MEMORY_LIMIT:-2g}
+    security_opt:
+      - no-new-privileges:true
+
+  # OPTIONAL — SQLite needs no container. Start with:
+  #   docker compose -f docker/docker-compose.yml --profile postgres up -d
+  # Then set CC_DATABASE_URL in .env to point at it.
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hermes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-before-use}
+      POSTGRES_DB: ${POSTGRES_DB:-hermes_control_center}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hermes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not published to the host: only the Control Center needs it.
+
+volumes:
+  hermes-data:
+  postgres-data:
